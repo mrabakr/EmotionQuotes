@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EmotionQuotes</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #6366f1;
+      --secondary: #8b5cf6;
+      --accent: #ec4899;
+      --dark: #1e293b;
+      --light: #f8fafc;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --overlay-darkness: 0.5;
+      --overlay-lightness: 0.5;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      color: var(--light);
+      text-align: center;
+      position: relative;
+      transition: all 1.5s cubic-bezier(0.33, 1, 0.68, 1);
+      overflow: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: linear-gradient(135deg, rgba(0, 0, 0, var(--overlay-darkness)) 0%, rgba(0, 0, 0, calc(var(--overlay-darkness) * 0.6)) 100%);
+      z-index: 0;
+      transition: all 1.5s cubic-bezier(0.33, 1, 0.68, 1);
+    }
+
+    .particles {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      opacity: 0.7;
+    }
+
+    .container {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 800px;
+      padding: 2rem;
+    }
+
+    #quote-box {
+      position: relative;
+      z-index: 3;
+      width: 100%;
+      padding: 3rem 2.5rem;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 24px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transform-style: preserve-3d;
+      perspective: 1000px;
+      transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    #quote-box:hover {
+      transform: translateY(-5px) rotateX(2deg) rotateY(1deg);
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1.5rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 2px 10px rgba(99, 102, 241, 0.2);
+    }
+
+    #quote {
+      font-size: 1.8rem;
+      line-height: 1.6;
+      margin-bottom: 2rem;
+      font-weight: 500;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    #quote.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    #author {
+      font-size: 1.2rem;
+      color: rgba(255, 255, 255, 0.8);
+      margin-bottom: 2.5rem;
+      font-style: italic;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.1s;
+    }
+
+    #author.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 0.9rem 1.8rem;
+      font-size: 1rem;
+      font-weight: 600;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border: none;
+      color: white;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button.secondary {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(5px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    button.secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .copied {
+      position: absolute;
+      bottom: -40px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--success);
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      opacity: 0;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    }
+
+    .copied.show {
+      opacity: 1;
+      bottom: -50px;
+    }
+
+    .category-selector {
+      margin-bottom: 2rem;
+    }
+
+    .category-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .category-btn {
+      padding: 0.5rem 1rem;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: white;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.9rem;
+    }
+
+    .category-btn.active, .category-btn:hover {
+      background: var(--primary);
+    }
+
+    .social-share {
+      margin-top: 2rem;
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+    }
+
+    .social-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .social-icon:hover {
+      background: var(--primary);
+      transform: translateY(-3px);
+    }
+
+    .loading {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .loading.show {
+      display: block;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      border-top-color: var(--primary);
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    .mood-indicator {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(5px);
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: all 0.5s ease;
+    }
+
+    .mood-indicator.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .floating {
+      animation: float 6s ease-in-out infinite;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 1rem;
+      }
+      
+      #quote-box {
+        padding: 2rem 1.5rem;
+      }
+      
+      h1 {
+        font-size: 2rem;
+      }
+      
+      #quote {
+        font-size: 1.4rem;
+      }
+
+      .mood-indicator {
+        top: 15px;
+        right: 15px;
+        font-size: 0.7rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="particles" id="particles-js"></div>
+  
+  <div class="container">
+    <div id="quote-box" class="floating">
+      <h1>EmotionQuotes</h1>
+      <div class="mood-indicator" id="mood-indicator"></div>
+      
+      <div class="category-selector">
+        <div class="category-buttons">
+          <button class="category-btn active" data-category="all">All</button>
+          <button class="category-btn" data-category="motivation">Motivation</button>
+          <button class="category-btn" data-category="life">Life</button>
+          <button class="category-btn" data-category="success">Success</button>
+          <button class="category-btn" data-category="wisdom">Wisdom</button>
+        </div>
+      </div>
+      
+      <div id="quote"></div>
+      <div id="author"></div>
+      
+      <div class="buttons">
+        <button onclick="generateQuote()">
+          <i class="fas fa-magic"></i> New Emotion
+        </button>
+        <button class="secondary" onclick="copyQuote()">
+          <i class="fas fa-copy"></i> Copy
+        </button>
+        <button class="secondary" onclick="speakQuote()">
+          <i class="fas fa-volume-up"></i> Speak
+        </button>
+      </div>
+      
+      <div class="social-share">
+        <div class="social-icon" onclick="shareOnTwitter()">
+          <i class="fab fa-twitter"></i>
+        </div>
+        <div class="social-icon" onclick="shareOnFacebook()">
+          <i class="fab fa-facebook-f"></i>
+        </div>
+        <div class="social-icon" onclick="shareOnLinkedIn()">
+          <i class="fab fa-linkedin-in"></i>
+        </div>
+      </div>
+    </div>
+    
+    <div class="copied" id="copied-msg">
+      <i class="fas fa-check"></i> Quote copied to clipboard!
+    </div>
+  </div>
+
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+  <script>
+    // Initialize particles.js
+    particlesJS("particles-js", {
+      "particles": {
+        "number": {
+          "value": 80,
+          "density": {
+            "enable": true,
+            "value_area": 800
+          }
+        },
+        "color": {
+          "value": "#ffffff"
+        },
+        "shape": {
+          "type": "circle",
+          "stroke": {
+            "width": 0,
+            "color": "#000000"
+          },
+          "polygon": {
+            "nb_sides": 5
+          }
+        },
+        "opacity": {
+          "value": 0.3,
+          "random": true,
+          "anim": {
+            "enable": true,
+            "speed": 1,
+            "opacity_min": 0.1,
+            "sync": false
+          }
+        },
+        "size": {
+          "value": 3,
+          "random": true,
+          "anim": {
+            "enable": true,
+            "speed": 2,
+            "size_min": 0.1,
+            "sync": false
+          }
+        },
+        "line_linked": {
+          "enable": true,
+          "distance": 150,
+          "color": "#ffffff",
+          "opacity": 0.2,
+          "width": 1
+        },
+        "move": {
+          "enable": true,
+          "speed": 1,
+          "direction": "none",
+          "random": true,
+          "straight": false,
+          "out_mode": "out",
+          "bounce": false,
+          "attract": {
+            "enable": true,
+            "rotateX": 600,
+            "rotateY": 1200
+          }
+        }
+      },
+      "interactivity": {
+        "detect_on": "canvas",
+        "events": {
+          "onhover": {
+            "enable": true,
+            "mode": "grab"
+          },
+          "onclick": {
+            "enable": true,
+            "mode": "push"
+          },
+          "resize": true
+        },
+        "modes": {
+          "grab": {
+            "distance": 140,
+            "line_linked": {
+              "opacity": 1
+            }
+          },
+          "push": {
+            "particles_nb": 4
+          }
+        }
+      },
+      "retina_detect": true
+    });
+
+    // Complete quotes database with perfectly matched images
+    const quotes = [
+      {
+        quote: "Believe in yourself and all that you are.",
+        author: "Christian D. Larson",
+        category: "motivation",
+        mood: "Confident",
+        image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80",
+        moodColor: "#6366f1"
+      },
+      {
+        quote: "Every moment is a fresh beginning.",
+        author: "T.S. Eliot",
+        category: "life",
+        mood: "Hopeful",
+        image: "https://images.unsplash.com/photo-1490730141103-6cac27aaab94?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80",
+        moodColor: "#8b5cf6"
+      },
+      {
+        quote: "Aspire to inspire before we expire.",
+        author: "Unknown",
+        category: "wisdom",
+        mood: "Inspiring",
+        image: "https://images.unsplash.com/photo-1519120944692-1a8d8cfc107f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80",
+        moodColor: "#ec4899"
+      },
+      {
+        quote: "Stay foolish to stay sane.",
+        author: "Maxime Lagace",
+        category: "wisdom",
+        mood: "Playful",
+        image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80",
+        moodColor: "#f59e0b"
+      },
+      {
+        quote: "When nothing goes right, go left.",
+        author: "Unknown",
+        category: "motivation",
+        mood: "Determined",
+        image: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80",
+        moodColor: "#10b981"
+      },
+      {
+        quote: "Impossible is for the unwilling.",
+        author: "John Keats",
+        category: "success",
+        mood: "Powerful",
+        image: "https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80",
+        moodColor: "#ef4444"
+      },
+      {
+        quote: "Once you choose hope, anything's possible.",
+        author: "Christopher Reeve",
+        category: "motivation",
+        mood: "Hopeful",
+        image: "https://images.unsplash.com/photo-1532274402911-5a369e4c4bb5?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80",
+        moodColor: "#3b82f6"
+      },
+      {
+        quote: "Try to be a rainbow in someone's cloud.",
+        author: "Maya Angelou",
+        category: "life",
+        mood: "Compassionate",
+        image: "https://images.unsplash.com/photo-1519608487953-e999c86e7455?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80",
+        moodColor: "#8b5cf6"
+      },
+      {
+        quote: "You are enough just as you are.",
+        author: "Meghan Markle",
+        category: "motivation",
+        mood: "Accepting",
+        image: "https://images.unsplash.com/photo-1505142468610-359e7d316be0?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80",
+        moodColor: "#ec4899"
+      },
+      {
+        quote: "Whatever you are, be a good one.",
+        author: "Abraham Lincoln",
+        category: "wisdom",
+        mood: "Focused",
+        image: "https://images.unsplash.com/photo-1451188502541-13943edb6acb?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80",
+        moodColor: "#10b981"
+      },
+      {
+        quote: "Dream big and dare to fail.",
+        author: "Norman Vaughan",
+        category: "success",
+        mood: "Ambitious",
+        image: "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80",
+        moodColor: "#6366f1"
+      },
+      {
+        quote: "The best revenge is massive success.",
+        author: "Frank Sinatra",
+        category: "success",
+        mood: "Triumphant",
+        image: "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80",
+        moodColor: "#f59e0b"
+      },
+      {
+        quote: "You only live once, but if you do it right, once is enough.",
+        author: "Mae West",
+        category: "life",
+        mood: "Joyful",
+        image: "https://images.unsplash.com/photo-1501854140801-50d01698950b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80",
+        moodColor: "#3b82f6"
+      },
+      {
+        quote: "Act as if what you do makes a difference. It does.",
+        author: "William James",
+        category: "motivation",
+        mood: "Purposeful",
+        image: "https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80",
+        moodColor: "#10b981"
+      },
+      {
+        quote: "Success is not how high you have climbed, but how you make a positive difference.",
+        author: "Roy T. Bennett",
+        category: "success",
+        mood: "Fulfilled",
+        image: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80",
+        moodColor: "#8b5cf6"
+      },
+      {
+        quote: "Turn your wounds into wisdom.",
+        author: "Oprah Winfrey",
+        category: "wisdom",
+        mood: "Resilient",
+        image: "https://images.unsplash.com/photo-1477346611705-65d1883cee1e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80",
+        moodColor: "#ef4444"
+      },
+      {
+        quote: "Keep your face always toward the sunshine—and shadows will fall behind you.",
+        author: "Walt Whitman",
+        category: "motivation",
+        mood: "Optimistic",
+        image: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80",
+        moodColor: "#f59e0b"
+      },
+      {
+        quote: "What lies behind us and what lies before us are tiny matters compared to what lies within us.",
+        author: "Ralph Waldo Emerson",
+        category: "wisdom",
+        mood: "Introspective",
+        image: "https://images.unsplash.com/photo-1511497584788-876760111969?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80",
+        moodColor: "#6366f1"
+      },
+      {
+        quote: "Happiness is not something ready made. It comes from your own actions.",
+        author: "Dalai Lama",
+        category: "life",
+        mood: "Content",
+        image: "https://images.unsplash.com/photo-1527481138388-31827a7c94d5?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80",
+        moodColor: "#3b82f6"
+      },
+      {
+        quote: "Do what you can, with what you have, where you are.",
+        author: "Theodore Roosevelt",
+        category: "wisdom",
+        mood: "Resourceful",
+        image: "https://images.unsplash.com/photo-1517825738774-7de9363ef735?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80",
+        moodColor: "#10b981"
+      }
+    ];
+
+    // Variables
+    let currentCategory = 'all';
+    let filteredQuotes = [...quotes];
+    
+    // DOM Elements
+    const quoteEl = document.getElementById('quote');
+    const authorEl = document.getElementById('author');
+    const copiedMsg = document.getElementById('copied-msg');
+    const loadingEl = document.getElementById('loading');
+    const moodIndicator = document.getElementById('mood-indicator');
+    const categoryBtns = document.querySelectorAll('.category-btn');
+    
+    // Set up category buttons
+    categoryBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        categoryBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentCategory = btn.dataset.category;
+        filterQuotes();
+        generateQuote();
+      });
+    });
+    
+    // Filter quotes by category
+    function filterQuotes() {
+      if (currentCategory === 'all') {
+        filteredQuotes = [...quotes];
+      } else {
+        filteredQuotes = quotes.filter(q => q.category === currentCategory);
+      }
+    }
+    
+    // Generate a random quote with perfectly matched background
+    function generateQuote() {
+      showLoading();
+      
+      const randomIndex = Math.floor(Math.random() * filteredQuotes.length);
+      const { quote, author, image, mood, moodColor } = filteredQuotes[randomIndex];
+      
+      // Hide current quote and mood indicator
+      quoteEl.classList.remove('show');
+      authorEl.classList.remove('show');
+      moodIndicator.classList.remove('show');
+      
+      // Change background with perfectly matched image
+      document.body.style.backgroundImage = `url('${image}')`;
+      
+      // Set mood indicator
+      moodIndicator.textContent = `Mood: ${mood}`;
+      moodIndicator.style.background = moodColor;
+      
+      // Adjust overlay based on mood brightness
+      adjustOverlay(mood);
+      
+      // After a short delay, show new content
+      setTimeout(() => {
+        quoteEl.textContent = `"${quote}"`;
+        authorEl.textContent = `— ${author}`;
+        
+        quoteEl.classList.add('show');
+        authorEl.classList.add('show');
+        moodIndicator.classList.add('show');
+        
+        hideLoading();
+      }, 800);
+    }
+    
+    // Adjust overlay darkness based on mood
+    function adjustOverlay(mood) {
+      const moodSettings = {
+        'Confident': { darkness: 0.5, particleOpacity: 0.3 },
+        'Hopeful': { darkness: 0.4, particleOpacity: 0.25 },
+        'Inspiring': { darkness: 0.45, particleOpacity: 0.28 },
+        'Playful': { darkness: 0.35, particleOpacity: 0.2 },
+        'Determined': { darkness: 0.5, particleOpacity: 0.3 },
+        'Powerful': { darkness: 0.6, particleOpacity: 0.35 },
+        'Compassionate': { darkness: 0.4, particleOpacity: 0.25 },
+        'Accepting': { darkness: 0.35, particleOpacity: 0.2 },
+        'Focused': { darkness: 0.5, particleOpacity: 0.3 },
+        'Ambitious': { darkness: 0.55, particleOpacity: 0.32 },
+        'Triumphant': { darkness: 0.45, particleOpacity: 0.28 },
+        'Joyful': { darkness: 0.3, particleOpacity: 0.18 },
+        'Purposeful': { darkness: 0.5, particleOpacity: 0.3 },
+        'Fulfilled': { darkness: 0.4, particleOpacity: 0.25 },
+        'Resilient': { darkness: 0.55, particleOpacity: 0.32 },
+        'Optimistic': { darkness: 0.35, particleOpacity: 0.2 },
+        'Introspective': { darkness: 0.6, particleOpacity: 0.35 },
+        'Content': { darkness: 0.3, particleOpacity: 0.18 },
+        'Resourceful': { darkness: 0.5, particleOpacity: 0.3 }
+      };
+      
+      const settings = moodSettings[mood] || { darkness: 0.5, particleOpacity: 0.3 };
+      
+      // Update CSS variables
+      document.documentElement.style.setProperty('--overlay-darkness', settings.darkness);
+      document.documentElement.style.setProperty('--overlay-lightness', 1 - settings.darkness);
+      
+      // Update particles opacity
+      if (window.pJSDom && window.pJSDom.length > 0) {
+        window.pJSDom[0].pJS.particles.opacity.value = settings.particleOpacity;
+        window.pJSDom[0].pJS.fn.particlesRefresh();
+      }
+    }
+    
+    // Copy quote to clipboard
+    function copyQuote() {
+      const quote = quoteEl.textContent;
+      const author = authorEl.textContent;
+      const textToCopy = `${quote} ${author}`;
+      
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        showCopiedMessage();
+      });
+    }
+    
+    // Speak quote
+    function speakQuote() {
+      const quote = quoteEl.textContent;
+      const author = authorEl.textContent;
+      const textToSpeak = `${quote} by ${author.replace('— ', '')}`;
+      
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(textToSpeak);
+        utterance.rate = 0.9;
+        utterance.pitch = 1;
+        speechSynthesis.speak(utterance);
+      } else {
+        alert('Text-to-speech is not supported in your browser');
+      }
+    }
+    
+    // Share on Twitter
+    function shareOnTwitter() {
+      const quote = quoteEl.textContent;
+      const author = authorEl.textContent;
+      const text = `${quote} ${author}`;
+      const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+      window.open(url, '_blank');
+    }
+    
+    // Share on Facebook
+    function shareOnFacebook() {
+      const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`;
+      window.open(url, '_blank');
+    }
+    
+    // Share on LinkedIn
+    function shareOnLinkedIn() {
+      const url = `https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(window.location.href)}`;
+      window.open(url, '_blank');
+    }
+    
+    // Show loading spinner
+    function showLoading() {
+      loadingEl.classList.add('show');
+    }
+    
+    // Hide loading spinner
+    function hideLoading() {
+      loadingEl.classList.remove('show');
+    }
+    
+    // Show copied message
+    function showCopiedMessage() {
+      copiedMsg.classList.add('show');
+      setTimeout(() => {
+        copiedMsg.classList.remove('show');
+      }, 2000);
+    }
+    
+    // Initialize
+    window.onload = () => {
+      filterQuotes();
+      generateQuote();
+      
+      // Preload all images
+      quotes.forEach(q => {
+        const img = new Image();
+        img.src = q.image;
+      });
+    };
+  </script>
+</body>
+</html>
